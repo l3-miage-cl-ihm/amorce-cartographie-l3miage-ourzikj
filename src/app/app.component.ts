@@ -1,7 +1,7 @@
 import { Component, Signal, computed, signal } from '@angular/core';
 import { RouterOutlet } from '@angular/router';
 import { LeafletModule } from '@asymmetrik/ngx-leaflet';
-import { MapOptions, tileLayer, LatLng, LatLngLiteral, marker, icon, Icon } from 'leaflet';
+import { MapOptions, tileLayer, LatLng, LatLngLiteral, marker, icon, Icon, LeafletMouseEvent } from 'leaflet';
 
 @Component({
   selector: 'app-root',
@@ -30,10 +30,18 @@ export class AppComponent {
   readonly options: Signal<MapOptions> = computed(() => ({
     layers: [
       tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 18, attribution: '...' }),
-      ...this.places().map( ({lat, lng}) => marker([lat, lng], {icon: this.defaultIcon()}) )
+      ...this.places().map( ({lat, lng}) => marker([lat, lng], {icon: this.defaultIcon()}).bindPopup(`<p>${ [lat, lng]}</p>`) )
     ]
   }) )
+
   
+  addMarker(event:LeafletMouseEvent){
+      console.log(event);
+      this.places.update(value =>[...value,event.latlng] )
+      console.log(this.places()) 
+
+  }
+
   allerVoirEmbrun(): void {
     this.center.set(new LatLng(44.566672, 6.5));
     this.zoom.set(13);

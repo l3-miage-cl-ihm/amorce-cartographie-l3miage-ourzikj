@@ -4,6 +4,8 @@
      [leafletOptions]="options()"
      [leafletCenter]="center()" (leafletCenterChange)="center.set($event)"
      [leafletZoom]="zoom()" (leafletZoomChange)="zoom.set($event)"
+     (leafletClick)="addMarker($event)"
+     
 ></div>
 
 <hr/>
