@@ -1,7 +1,7 @@
 import { Component, Signal, computed, signal } from '@angular/core';
 import { RouterOutlet } from '@angular/router';
 import { LeafletModule } from '@asymmetrik/ngx-leaflet';
-import { MapOptions, tileLayer, LatLng, LatLngLiteral, marker, icon, Icon, LeafletMouseEvent, Layer } from 'leaflet';
+import { MapOptions, tileLayer, LatLng, LatLngLiteral, marker, icon, Icon, LeafletMouseEvent, Layer, circle } from 'leaflet';
 
 @Component({
   selector: 'app-root',
@@ -36,7 +36,8 @@ export class AppComponent {
 
   readonly layers: Signal<Layer[]> = computed(() => [
     tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 18, attribution: '...' }),
-    ...this.sigMarkers()
+    ...this.sigMarkers(),
+    circle([45.19379120519956, 5.768213868141175], { radius: 100, color: 'red' })
   ])
 
 
