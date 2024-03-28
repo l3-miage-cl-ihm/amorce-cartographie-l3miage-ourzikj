@@ -1,7 +1,9 @@
 import { Component, Signal, computed, signal } from '@angular/core';
 import { RouterOutlet } from '@angular/router';
 import { LeafletModule } from '@asymmetrik/ngx-leaflet';
-import { MapOptions, tileLayer, LatLng, LatLngLiteral, marker, icon, Icon, LeafletMouseEvent } from 'leaflet';
+import { MapOptions, tileLayer, LatLng, LatLngLiteral, marker, icon, Icon, LeafletMouseEvent, Layer, Marker } from 'leaflet';
+import { Observable, Subject, concat, from, map, scan, tap } from 'rxjs';
+import { toSignal } from '@angular/core/rxjs-interop'
 
 @Component({
   selector: 'app-root',
@@ -21,25 +23,33 @@ export class AppComponent {
   readonly center = signal<LatLng>( new LatLng(45.166672, 5.71667) );
   readonly zoom = signal<number>(12);
 
-  readonly places = signal<readonly LatLngLiteral[]>([
+  private readonly subjLatLng = new Subject<LatLngLiteral>()
+  private readonly obsPlaces = from<LatLngLiteral[]>([
     { lat: 48.858370, lng: 2.294481 },                   // Tour Eiffel
     { lat: 45.193866812447716, lng: 5.768449902534485 }, // UFR IM2AG
     { lat: 44.56414746666089, lng: 6.495827436447144},   // Place Bartelon
   ]);
-  
-  readonly options: Signal<MapOptions> = computed(() => ({
-    layers: [
-      tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 18, attribution: '...' }),
-      ...this.places().map( ({lat, lng}) => marker([lat, lng], {icon: this.defaultIcon()}).bindPopup(`<p>${ [lat, lng]}</p>`) )
-    ]
-  }) )
+
+  private readonly obsMarkers: Observable<Marker<unknown>[]> = concat(
+    this.obsPlaces,
+    this.subjLatLng
+  ).pipe(
+    map(({ lat, lng }) => marker([lat, lng], { icon: this.defaultIcon() }).bindPopup(`<p>${[lat, lng]}</p>`)),
+    tap( console.log ),
+    scan( (acc, marker) => [...acc, marker], [] as Marker<unknown>[])
+  );
+  private readonly sigMarkers = toSignal(this.obsMarkers, {initialValue: []});
+
+  readonly fondDeCarte = tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 18, attribution: '...' });
+  readonly layers: Signal<Layer[]> = computed(() => [
+    this.fondDeCarte,
+    ...this.sigMarkers()
+    // ...this.places().map( ({lat, lng}) => marker([lat, lng], {icon: this.defaultIcon()}).bindPopup(`<p>${ [lat, lng]}</p>`) )
+    ] )
 
   
   addMarker(event:LeafletMouseEvent){
-      console.log(event);
-      this.places.update(value =>[...value,event.latlng] )
-      console.log(this.places()) 
-
+    this.subjLatLng.next( event.latlng );
   }
 
   allerVoirEmbrun(): void {

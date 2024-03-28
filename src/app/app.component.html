@@ -1,7 +1,7 @@
 <h1>Amorce de code pour utilisation de la cartographie</h1>
 
 <div leaflet
-     [leafletOptions]="options()"
+     [leafletLayers]="layers()"
      [leafletCenter]="center()" (leafletCenterChange)="center.set($event)"
      [leafletZoom]="zoom()" (leafletZoomChange)="zoom.set($event)"
      (leafletClick)="addMarker($event)"
